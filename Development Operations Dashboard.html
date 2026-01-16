@@ -1,0 +1,1499 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Development Operations Dashboard • 235+ Tools</title>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --text: #1e293b;
+      --gray: #64748b;
+      --accent: #3b82f6;
+      --border: #e2e8f0;
+      --sidebar-bg: #ffffff;
+      --summary-bg: #f1f5f9;
+    }
+    [data-theme="dark"] {
+      --bg: #0f172a;
+      --card: #1e293b;
+      --text: #e2e8f0;
+      --gray: #94a3b8;
+      --accent: #60a5fa;
+      --border: #334155;
+      --sidebar-bg: #1e293b;
+      --summary-bg: #334155;
+    }
+    body {
+      margin: 0;
+      font-family: system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      transition: background 0.3s, color 0.3s;
+    }
+    #sidebar {
+      width: 260px;
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--border);
+      padding: 1.5rem 1rem;
+      position: fixed;
+      height: 100vh;
+      overflow-y: auto;
+      box-sizing: border-box;
+      transition: background 0.3s, border-color 0.3s;
+    }
+    #sidebar h2 {
+      margin: 0 0 1.2rem;
+      font-size: 1.35rem;
+      color: var(--accent);
+    }
+    .category {
+      display: block;
+      padding: 0.75rem 1rem;
+      margin: 0.35rem 0;
+      border-radius: 8px;
+      cursor: pointer;
+      color: var(--text);
+      transition: all 0.2s;
+    }
+    .category:hover,
+    .category.active {
+      background: var(--accent);
+      color: white;
+    }
+    #main-content {
+      margin-left: 260px;
+      flex: 1;
+      padding: 1rem 2rem;
+    }
+    header {
+      background: linear-gradient(135deg, #1e40af, #3b82f6);
+      color: white;
+      text-align: center;
+      padding: 2rem 1rem;
+      position: relative;
+    }
+    header h1 { margin:0; font-size:2.4rem; }
+    .controls {
+      position: absolute;
+      top: 1.5rem;
+      right: 1.5rem;
+      display: flex;
+      gap: 1rem;
+    }
+    button, select {
+      padding: 0.6rem 1.2rem;
+      border: none;
+      border-radius: 8px;
+      background: rgba(255,255,255,0.25);
+      color: white;
+      cursor: pointer;
+      font-size: 0.95rem;
+    }
+    button:hover, select:hover { background: rgba(255,255,255,0.4); }
+    .search-box, .sort-box {
+      max-width: 900px;
+      margin: 1.5rem auto;
+      padding: 0 1rem;
+      text-align: center;
+    }
+    #search {
+      width: 100%;
+      max-width: 600px;
+      padding: 1rem;
+      font-size: 1.1rem;
+      border: none;
+      border-radius: 999px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      outline: none;
+    }
+    details.stage {
+      margin: 1.5rem 0;
+      background: var(--card);
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      overflow: hidden;
+    }
+    summary {
+      padding: 1.2rem 1.5rem;
+      font-size: 1.3rem;
+      font-weight: 600;
+      background: var(--summary-bg);
+      cursor: pointer;
+    }
+    .goal {
+      padding: 0.8rem 1.5rem;
+      color: var(--gray);
+      font-size: 0.95rem;
+      font-style: italic;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 1.2rem;
+      padding: 1rem 1.5rem 1.5rem;
+    }
+    .card {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 1.2rem;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      transition: all 0.22s ease;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 170px;
+      justify-content: center;
+    }
+    .card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 12px 24px rgba(0,0,0,0.15);
+    }
+    .favicon {
+      width: 52px;
+      height: 52px;
+      margin-bottom: 0.7rem;
+      border-radius: 10px;
+      background: white;
+      padding: 6px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+      object-fit: contain;
+    }
+    .name {
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin-bottom: 0.4rem;
+    }
+    .desc {
+      font-size: 0.82rem;
+      color: var(--gray);
+      line-height: 1.3;
+    }
+    @media (max-width: 992px) {
+      #sidebar { width: 220px; }
+      #main-content { margin-left: 220px; }
+    }
+    @media (max-width: 768px) {
+      body { flex-direction: column; }
+      #sidebar { position: static; width: 100%; height: auto; border-right: none; border-bottom: 1px solid var(--border); }
+      #main-content { margin-left: 0; padding: 1rem; }
+      .grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+    }
+  </style>
+</head>
+<body>
+
+<div id="sidebar">
+  <h2>Categories</h2>
+  <div class="category active" data-category="all">All Resources</div>
+  <div class="category" data-category="ai-feasibility">AI & Feasibility</div>
+  <div class="category" data-category="due-diligence">Due Diligence</div>
+  <div class="category" data-category="zoning-permitting">Zoning & Permitting</div>
+  <div class="category" data-category="economic-development">Economic Development</div>
+  <div class="category" data-category="financial-modeling">Financial Modeling</div>
+  <div class="category" data-category="entitlements">Entitlements</div>
+  <div class="category" data-category="utilities-infra">Utilities & Infrastructure</div>
+  <div class="category" data-category="public-data-gis">Public Data & GIS</div>
+  <div class="category" data-category="environmental-esg">Environmental & ESG</div>
+  <div class="category" data-category="demographics-market">Demographics & Market</div>
+  <div class="category" data-category="legal-compliance">Legal & Compliance</div>
+  <div class="category" data-category="construction-engineering">Construction & Engineering</div>
+  <div class="category" data-category="property-management">Property Management</div>
+  <div class="category" data-category="general-ai">General AI Tools</div>
+  <div class="category" data-category="other">Other</div>
+</div>
+
+<div id="main-content">
+
+<header>
+  <h1>🏗️ Development Operations Dashboard</h1>
+  <div class="controls">
+    <button id="toggle-theme">Dark Mode</button>
+  </div>
+</header>
+
+<div class="search-box">
+  <input type="search" id="search" placeholder="Search any tool…">
+</div>
+
+<div class="sort-box">
+  <label>Sort cards within stages: </label>
+  <select id="sort">
+    <option value="original">Original order</option>
+    <option value="alpha">Alphabetical (A–Z)</option>
+  </select>
+</div>
+
+<div class="container">
+
+  <!-- Stage 1 -->
+  <details class="stage" open>
+    <summary>Stage 1: Initial Discovery & Market Scouting</summary>
+    <div class="goal">Identify parcels, verify market viability, analyze location data</div>
+    <div class="grid" data-stage="1">
+      <a href="https://www.aino.world/" target="_blank" class="card" data-name="Aino" data-category="ai-feasibility">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=aino.world&sz=64" loading="lazy" alt="">
+        <div class="name">Aino</div>
+        <div class="desc">AI for location data analysis</div>
+      </a>
+      <a href="https://www.propheticsoftware.ai/" target="_blank" class="card" data-name="Prophetic AI" data-category="ai-feasibility">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=propheticsoftware.ai&sz=64" loading="lazy" alt="">
+        <div class="name">Prophetic AI</div>
+        <div class="desc">AI workflows for land acquisition</div>
+      </a>
+      <a href="https://www.reonomy.com/" target="_blank" class="card" data-name="Reonomy" data-category="demographics-market">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=reonomy.com&sz=64" loading="lazy" alt="">
+        <div class="name">Reonomy</div>
+        <div class="desc">Property intelligence for 54M+ commercial parcels</div>
+      </a>
+      <a href="https://www.propstream.com/" target="_blank" class="card" data-name="PropStream" data-category="demographics-market">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=propstream.com&sz=64" loading="lazy" alt="">
+        <div class="name">PropStream</div>
+        <div class="desc">ML-powered property search</div>
+      </a>
+      <a href="https://id.land/" target="_blank" class="card" data-name="Land.id" data-category="public-data-gis">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=id.land&sz=64" loading="lazy" alt="">
+        <div class="name">Land.id</div>
+        <div class="desc">Property maps with parcel and utility overlays</div>
+      </a>
+      <a href="https://getcivicstar.ai/" target="_blank" class="card" data-name="CivicStar" data-category="ai-feasibility">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=getcivicstar.ai&sz=64" loading="lazy" alt="">
+        <div class="name">CivicStar</div>
+        <div class="desc">Pre-construction development intelligence</div>
+      </a>
+      <a href="https://www.placer.ai/" target="_blank" class="card" data-name="Placer.ai" data-category="demographics-market">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=placer.ai&sz=64" loading="lazy" alt="">
+        <div class="name">Placer.ai</div>
+        <div class="desc">Foot traffic analytics for feasibility</div>
+      </a>
+      <a href="https://www.costar.com/" target="_blank" class="card" data-name="CoStar" data-category="demographics-market">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=costar.com&sz=64" loading="lazy" alt="">
+        <div class="name">CoStar</div>
+        <div class="desc">Commercial real estate market data and analytics</div>
+      </a>
+      <a href="https://hellodata.ai/" target="_blank" class="card" data-name="HelloData.ai" data-category="ai-feasibility">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=hellodata.ai&sz=64" loading="lazy" alt="">
+        <div class="name">HelloData.ai</div>
+        <div class="desc">AI-driven automated rent and sales comps</div>
+      </a>
+      <a href="https://www.housecanary.com/" target="_blank" class="card" data-name="HouseCanary" data-category="demographics-market">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=housecanary.com&sz=64" loading="lazy" alt="">
+        <div class="name">HouseCanary</div>
+        <div class="desc">Predictive analytics for 130M+ residential properties</div>
+      </a>
+    </div>
+  </details>
+
+  <!-- Stage 2 -->
+  <details class="stage">
+    <summary>Stage 2: Zoning & Regulatory Due Diligence</summary>
+    <div class="goal">Check buildability, density limits, zoning constraints</div>
+    <div class="grid" data-stage="2">
+      <a href="https://www.landlogic.ai/" target="_blank" class="card" data-name="LandLogic" data-category="zoning-permitting">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=landlogic.ai&sz=64" loading="lazy" alt="">
+        <div class="name">LandLogic</div>
+        <div class="desc">AI for zoning and municipal standardized data (Canada)</div>
+      </a>
+      <a href="https://zoneomics.com/" target="_blank" class="card" data-name="Zoneomics" data-category="zoning-permitting">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=zoneomics.com&sz=64" loading="lazy" alt="">
+        <div class="name">Zoneomics</div>
+        <div class="desc">Zoning data platform with API and reports</div>
+      </a>
+      <a href="https://gridics.com/" target="_blank" class="card" data-name="Gridics" data-category="zoning-permitting">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=gridics.com&sz=64" loading="lazy" alt="">
+        <div class="name">Gridics</div>
+        <div class="desc">Zoning data for upzoning scenarios</div>
+      </a>
+      <a href="https://www.realreports.ai/" target="_blank" class="card" data-name="RealReports" data-category="due-diligence">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=realreports.ai&sz=64" loading="lazy" alt="">
+        <div class="name">RealReports</div>
+        <div class="desc">"Carfax for land" – AI property reports</div>
+      </a>
+      <a href="https://www.archiwise.ai/" target="_blank" class="card" data-name="ArchiWise AI" data-category="zoning-permitting">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=archiwise.ai&sz=64" loading="lazy" alt="">
+        <div class="name">ArchiWise AI</div>
+        <div class="desc">Zoning analysis and site insights</div>
+      </a>
+      <a href="https://deepblocks.com/" target="_blank" class="card" data-name="Deepblocks" data-category="zoning-permitting">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=deepblocks.com&sz=64" loading="lazy" alt="">
+        <div class="name">Deepblocks</div>
+        <div class="desc">Zoning capacity analysis for urban infill</div>
+      </a>
+      <a href="https://readypermit.ai/" target="_blank" class="card" data-name="ReadyPermit" data-category="zoning-permitting">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=readypermit.ai&sz=64" loading="lazy" alt="">
+        <div class="name">ReadyPermit</div>
+        <div class="desc">Property intelligence and buildability analysis</div>
+      </a>
+      <a href="https://plotzy.ai/" target="_blank" class="card" data-name="Plotzy" data-category="zoning-permitting">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=plotzy.ai&sz=64" loading="lazy" alt="">
+        <div class="name">Plotzy</div>
+        <div class="desc">AI for zoning analysis in due diligence</div>
+      </a>
+      <a href="https://library.municode.com/" target="_blank" class="card" data-name="Municode Library" data-category="zoning-permitting">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=municode.com&sz=64" loading="lazy" alt="">
+        <div class="name">Municode Library</div>
+        <div class="desc">Searchable municipal codes and ordinances</div>
+      </a>
+      <a href="https://opengov.com/products/permitting-and-licensing/zoning-software/" target="_blank" class="card" data-name="OpenGov Zoning" data-category="zoning-permitting">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=opengov.com&sz=64" loading="lazy" alt="">
+        <div class="name">OpenGov Zoning</div>
+        <div class="desc">Interactive zoning maps</div>
+      </a>
+      <a href="https://www.govpilot.com/planning-and-zoning-software" target="_blank" class="card" data-name="GovPilot" data-category="zoning-permitting">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=govpilot.com&sz=64" loading="lazy" alt="">
+        <div class="name">GovPilot</div>
+        <div class="desc">GIS-integrated zoning management</div>
+      </a>
+      <a href="https://www.citizenserve.com/" target="_blank" class="card" data-name="Citizenserve" data-category="zoning-permitting">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=citizenserve.com&sz=64" loading="lazy" alt="">
+        <div class="name">Citizenserve</div>
+        <div class="desc">Community development and permitting platform</div>
+      </a>
+      <a href="https://iworq.com/systems/planning-zoning-software/" target="_blank" class="card" data-name="iWorQ" data-category="zoning-permitting">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=iworq.com&sz=64" loading="lazy" alt="">
+        <div class="name">iWorQ</div>
+        <div class="desc">Comprehensive zoning and land use management</div>
+      </a>
+      <a href="https://www.diald.ai/" target="_blank" class="card" data-name="Diald AI" data-category="due-diligence">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=diald.ai&sz=64" loading="lazy" alt="">
+        <div class="name">Diald AI</div>
+        <div class="desc">AI-powered real estate due diligence scanning 1.7M+ data sources</div>
+      </a>
+      <a href="https://www.v7labs.com/" target="_blank" class="card" data-name="V7 Go" data-category="due-diligence">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=v7labs.com&sz=64" loading="lazy" alt="">
+        <div class="name">V7 Go</div>
+        <div class="desc">AI-driven due diligence command center for M&A and real estate</div>
+      </a>
+      <a href="https://cherre.com/" target="_blank" class="card" data-name="Cherre" data-category="due-diligence">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=cherre.com&sz=64" loading="lazy" alt="">
+        <div class="name">Cherre</div>
+        <div class="desc">Universal Data Model connecting 3.3B+ addresses with AI</div>
+      </a>
+      <a href="https://www.enodoinc.com/" target="_blank" class="card" data-name="Enodo" data-category="due-diligence">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=enodoinc.com&sz=64" loading="lazy" alt="">
+        <div class="name">Enodo</div>
+        <div class="desc">Multifamily due diligence using predictive analytics</div>
+      </a>
+      <a href="https://www.proda.ai/" target="_blank" class="card" data-name="Proda AI" data-category="due-diligence">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=proda.ai&sz=64" loading="lazy" alt="">
+        <div class="name">Proda AI</div>
+        <div class="desc">AI for rent roll data standardization</div>
+      </a>
+      <a href="https://www.blooma.ai/" target="_blank" class="card" data-name="Blooma" data-category="due-diligence">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=blooma.ai&sz=64" loading="lazy" alt="">
+        <div class="name">Blooma</div>
+        <div class="desc">AI for commercial real estate lending and deal analysis</div>
+      </a>
+      <a href="https://www.imprima.com/" target="_blank" class="card" data-name="Imprima" data-category="due-diligence">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=imprima.com&sz=64" loading="lazy" alt="">
+        <div class="name">Imprima</div>
+        <div class="desc">AI for real estate due diligence</div>
+      </a>
+      <a href="https://pdf.ai/" target="_blank" class="card" data-name="PDF.ai" data-category="due-diligence">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=pdf.ai&sz=64" loading="lazy" alt="">
+        <div class="name">PDF.ai</div>
+        <div class="desc">Extract data from PDFs for diligence</div>
+      </a>
+      <a href="https://www.civils.ai/" target="_blank" class="card" data-name="Civils AI" data-category="due-diligence">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=civils.ai&sz=64" loading="lazy" alt="">
+        <div class="name">Civils AI</div>
+        <div class="desc">AI for CRE data and due diligence</div>
+      </a>
+      <a href="https://www.getsurface.ai/" target="_blank" class="card" data-name="SurfaceAI" data-category="due-diligence">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=getsurface.ai&sz=64" loading="lazy" alt="">
+        <div class="name">SurfaceAI</div>
+        <div class="desc">Financial due diligence AI</div>
+      </a>
+      <a href="https://www.greenlite.com/" target="_blank" class="card" data-name="GreenLite" data-category="due-diligence">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=greenlite.com&sz=64" loading="lazy" alt="">
+        <div class="name">GreenLite</div>
+        <div class="desc">AI for permitting and due diligence automation</div>
+      </a>
+      <a href="https://www.orbitalcopilot.com/" target="_blank" class="card" data-name="Orbital Copilot" data-category="legal-compliance">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=orbitalcopilot.com&sz=64" loading="lazy" alt="">
+        <div class="name">Orbital Copilot</div>
+        <div class="desc">AI for CRE legal due diligence</div>
+      </a>
+    </div>
+  </details>
+
+  <!-- Stage 3 -->
+  <details class="stage">
+    <summary>Stage 3: Physical & Environmental Site Assessment</summary>
+    <div class="goal">Verify ground conditions, environmental constraints, utilities</div>
+    <div class="grid" data-stage="3">
+      <a href="https://websoilsurvey.nrcs.usda.gov/" target="_blank" class="card" data-name="USDA Web Soil Survey" data-category="public-data-gis">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=websoilsurvey.nrcs.usda.gov&sz=64" loading="lazy" alt="">
+        <div class="name">USDA Web Soil Survey</div>
+        <div class="desc">Soil maps, drainage, and agricultural limitations</div>
+      </a>
+      <a href="https://apps.nationalmap.gov/lidar-explorer/" target="_blank" class="card" data-name="USGS LiDAR Explorer" data-category="public-data-gis">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=apps.nationalmap.gov&sz=64" loading="lazy" alt="">
+        <div class="name">USGS LiDAR Explorer</div>
+        <div class="desc">LiDAR 3D elevation data coverage</div>
+      </a>
+      <a href="https://apps.nationalmap.gov/downloader/" target="_blank" class="card" data-name="USGS National Map Downloader" data-category="public-data-gis">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=apps.nationalmap.gov&sz=64" loading="lazy" alt="">
+        <div class="name">USGS National Map Downloader</div>
+        <div class="desc">DEM, orthoimagery, and base data</div>
+      </a>
+      <a href="https://www.opentopography.org/data" target="_blank" class="card" data-name="OpenTopography" data-category="public-data-gis">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=opentopography.org&sz=64" loading="lazy" alt="">
+        <div class="name">OpenTopography</div>
+        <div class="desc">High-resolution terrain datasets and point clouds</div>
+      </a>
+      <a href="https://www.usgs.gov/centers/eros/science/national-land-cover-database" target="_blank" class="card" data-name="National Land Cover Database" data-category="public-data-gis">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=usgs.gov&sz=64" loading="lazy" alt="">
+        <div class="name">National Land Cover Database</div>
+        <div class="desc">Land cover classification</div>
+      </a>
+      <a href="https://data.usgs.gov/" target="_blank" class="card" data-name="USGS Data" data-category="public-data-gis">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=data.usgs.gov&sz=64" loading="lazy" alt="">
+        <div class="name">USGS Data</div>
+        <div class="desc">Geospatial datasets repository</div>
+      </a>
+      <a href="https://www.census.gov/geographies/mapping-files/time-series/geo/tiger-line-file.html" target="_blank" class="card" data-name="TIGER/Line Shapefiles" data-category="public-data-gis">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=census.gov&sz=64" loading="lazy" alt="">
+        <div class="name">TIGER/Line Shapefiles</div>
+        <div class="desc">Census geographic boundary files</div>
+      </a>
+      <a href="https://msc.fema.gov/" target="_blank" class="card" data-name="FEMA Flood Map Service" data-category="environmental-esg">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=msc.fema.gov&sz=64" loading="lazy" alt="">
+        <div class="name">FEMA Flood Map Service</div>
+        <div class="desc">Official flood insurance rate maps and studies</div>
+      </a>
+      <a href="https://www.arcgis.com/apps/webappviewer/index.html?id=8b0adb51996444d4879338b5529aa9cd" target="_blank" class="card" data-name="FEMA NFHL Viewer" data-category="environmental-esg">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=arcgis.com&sz=64" loading="lazy" alt="">
+        <div class="name">FEMA NFHL Viewer</div>
+        <div class="desc">National Flood Hazard Layer interactive map</div>
+      </a>
+      <a href="https://www.fws.gov/program/national-wetlands-inventory/wetlands-mapper" target="_blank" class="card" data-name="USFWS Wetlands Mapper" data-category="environmental-esg">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=fws.gov&sz=64" loading="lazy" alt="">
+        <div class="name">USFWS Wetlands Mapper</div>
+        <div class="desc">National Wetlands Inventory mapping</div>
+      </a>
+      <a href="https://www.epa.gov/enviroatlas" target="_blank" class="card" data-name="EPA EnviroAtlas" data-category="environmental-esg">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=epa.gov&sz=64" loading="lazy" alt="">
+        <div class="name">EPA EnviroAtlas</div>
+        <div class="desc">Interactive environmental mapping</div>
+      </a>
+      <a href="https://enviro.epa.gov/" target="_blank" class="card" data-name="EPA Envirofacts" data-category="environmental-esg">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=epa.gov&sz=64" loading="lazy" alt="">
+        <div class="name">EPA Envirofacts</div>
+        <div class="desc">EPA environmental compliance and facility data</div>
+      </a>
+      <a href="https://www.gresb.com/" target="_blank" class="card" data-name="GRESB" data-category="environmental-esg">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=gresb.com&sz=64" loading="lazy" alt="">
+        <div class="name">GRESB</div>
+        <div class="desc">ESG benchmarking and performance assessment</div>
+      </a>
+      <a href="https://www.partneresi.com/" target="_blank" class="card" data-name="Partner ESI" data-category="environmental-esg">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=partneresi.com&sz=64" loading="lazy" alt="">
+        <div class="name">Partner ESI</div>
+        <div class="desc">Environmental due diligence and Phase I ESA services</div>
+      </a>
+      <a href="https://flypix.ai/" target="_blank" class="card" data-name="FlyPix AI" data-category="ai-feasibility">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=flypix.ai&sz=64" loading="lazy" alt="">
+        <div class="name">FlyPix AI</div>
+        <div class="desc">Geospatial and land-use analysis via satellite imagery</div>
+      </a>
+      <a href="https://4manalytics.com/" target="_blank" class="card" data-name="4M Analytics" data-category="utilities-infra">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=4manalytics.com&sz=64" loading="lazy" alt="">
+        <div class="name">4M Analytics</div>
+        <div class="desc">Subsurface utility mapping for land development</div>
+      </a>
+      <a href="https://pointman.com/" target="_blank" class="card" data-name="PointMan" data-category="utilities-infra">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=pointman.com&sz=64" loading="lazy" alt="">
+        <div class="name">PointMan</div>
+        <div class="desc">Underground utility mapping and coordination</div>
+      </a>
+      <a href="https://www.esri.com/en-us/industries/water-utilities" target="_blank" class="card" data-name="Esri ArcGIS Utilities" data-category="utilities-infra">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=esri.com&sz=64" loading="lazy" alt="">
+        <div class="name">Esri ArcGIS Utilities</div>
+        <div class="desc">Utility mapping and asset management</div>
+      </a>
+      <a href="https://www.usicllc.com/" target="_blank" class="card" data-name="USIC" data-category="utilities-infra">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=usicllc.com&sz=64" loading="lazy" alt="">
+        <div class="name">USIC</div>
+        <div class="desc">Utility locating and damage prevention services</div>
+      </a>
+    </div>
+  </details>
+
+  <!-- Stage 4 -->
+  <details class="stage">
+    <summary>Stage 4: Generative Massing & Initial Feasibility</summary>
+    <div class="goal">Test layouts, generate options, rapid design iterations</div>
+    <div class="grid" data-stage="4">
+      <a href="https://www.testfit.io/" target="_blank" class="card" data-name="TestFit" data-category="ai-feasibility">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=testfit.io&sz=64" loading="lazy" alt="">
+        <div class="name">TestFit</div>
+        <div class="desc">AI-driven site planning and rapid feasibility layouts</div>
+      </a>
+      <a href="https://www.autodesk.com/products/forma/overview" target="_blank" class="card" data-name="Autodesk Forma" data-category="ai-feasibility">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=autodesk.com&sz=64" loading="lazy" alt="">
+        <div class="name">Autodesk Forma</div>
+        <div class="desc">AI for urban planning with microclimate analysis</div>
+      </a>
+      <a href="https://www.arkdesign.ai/" target="_blank" class="card" data-name="ArkDesign" data-category="ai-feasibility">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=arkdesign.ai&sz=64" loading="lazy" alt="">
+        <div class="name">ArkDesign</div>
+        <div class="desc">AI schematic designs and feasibility reports</div>
+      </a>
+      <a href="https://hypar.io/" target="_blank" class="card" data-name="Hypar" data-category="ai-feasibility">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=hypar.io&sz=64" loading="lazy" alt="">
+        <div class="name">Hypar</div>
+        <div class="desc">Building-as-code parametric design platform</div>
+      </a>
+      <a href="https://www.zenerate.ai/" target="_blank" class="card" data-name="Zenerate" data-category="ai-feasibility">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=zenerate.ai&sz=64" loading="lazy" alt="">
+        <div class="name">Zenerate</div>
+        <div class="desc">AI feasibility studies and automated site plans</div>
+      </a>
+      <a href="https://www.qbiq.ai/" target="_blank" class="card" data-name="qbiq" data-category="ai-feasibility">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=qbiq.ai&sz=64" loading="lazy" alt="">
+        <div class="name">qbiq</div>
+        <div class="desc">Automated architectural planning for test-fits</div>
+      </a>
+      <a href="https://www.architechtures.com/" target="_blank" class="card" data-name="Architechtures" data-category="ai-feasibility">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=architechtures.com&sz=64" loading="lazy" alt="">
+        <div class="name">Architechtures</div>
+        <div class="desc">AI residential planning and building design</div>
+      </a>
+      <a href="https://www.digitalbluefoam.com/" target="_blank" class="card" data-name="Digital Blue Foam (DBF)" data-category="ai-feasibility">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=digitalbluefoam.com&sz=64" loading="lazy" alt="">
+        <div class="name">Digital Blue Foam (DBF)</div>
+        <div class="desc">Generative design and spatial analytics for urban planning</div>
+      </a>
+      <a href="https://www.maket.ai/" target="_blank" class="card" data-name="Maket" data-category="ai-feasibility">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=maket.ai&sz=64" loading="lazy" alt="">
+        <div class="name">Maket</div>
+        <div class="desc">AI generative design with regulatory assistant</div>
+      </a>
+      <a href="https://www.feasibly.ai/" target="_blank" class="card" data-name="Feasibly" data-category="ai-feasibility">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=feasibly.ai&sz=64" loading="lazy" alt="">
+        <div class="name">Feasibly</div>
+        <div class="desc">Multi-agent AI for market and financial feasibility</div>
+      </a>
+      <a href="https://www.spacemaker.ai/" target="_blank" class="card" data-name="Spacemaker AI" data-category="ai-feasibility">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=spacemaker.ai&sz=64" loading="lazy" alt="">
+        <div class="name">Spacemaker AI</div>
+        <div class="desc">Urban design and feasibility simulations (now part of Autodesk)</div>
+      </a>
+      <a href="https://www.dzinly.com/" target="_blank" class="card" data-name="Dzinly" data-category="ai-feasibility">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=dzinly.com&sz=64" loading="lazy" alt="">
+        <div class="name">Dzinly</div>
+        <div class="desc">AI for exterior design and visualization</div>
+      </a>
+      <a href="https://www.archistar.ai/" target="_blank" class="card" data-name="Archistar" data-category="ai-feasibility">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=archistar.ai&sz=64" loading="lazy" alt="">
+        <div class="name">Archistar</div>
+        <div class="desc">Property feasibility and permitting platform with GIS</div>
+      </a>
+    </div>
+  </details>
+
+  <!-- Stage 5 -->
+  <details class="stage">
+    <summary>Stage 5: Financial Modeling & Underwriting</summary>
+    <div class="goal">Assess viability with DCF, pro formas, investment analysis</div>
+    <div class="grid" data-stage="5">
+      <a href="https://www.aprao.com/en-us/" target="_blank" class="card" data-name="Aprao" data-category="financial-modeling">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=aprao.com&sz=64" loading="lazy" alt="">
+        <div class="name">Aprao</div>
+        <div class="desc">Automated pro forma generation and land valuation</div>
+      </a>
+      <a href="https://www.feasibility.pro/" target="_blank" class="card" data-name="Feasibility.pro" data-category="financial-modeling">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=feasibility.pro&sz=64" loading="lazy" alt="">
+        <div class="name">Feasibility.pro</div>
+        <div class="desc">Full development feasibility modeling</div>
+      </a>
+      <a href="https://www.altusgroup.com/solutions/argus-enterprise/" target="_blank" class="card" data-name="ARGUS Enterprise" data-category="financial-modeling">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=altusgroup.com&sz=64" loading="lazy" alt="">
+        <div class="name">ARGUS Enterprise</div>
+        <div class="desc">Industry standard CRE cash flow modeling</div>
+      </a>
+      <a href="https://www.apers.app/" target="_blank" class="card" data-name="Apers.app" data-category="financial-modeling">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=apers.app&sz=64" loading="lazy" alt="">
+        <div class="name">Apers.app</div>
+        <div class="desc">AI for real estate financial modeling and checklists</div>
+      </a>
+      <a href="https://www.adventuresincre.com/" target="_blank" class="card" data-name="Adventures in CRE" data-category="financial-modeling">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=adventuresincre.com&sz=64" loading="lazy" alt="">
+        <div class="name">Adventures in CRE</div>
+        <div class="desc">Pro forma templates, courses, and development models</div>
+      </a>
+      <a href="https://propertymetrics.com/blog/discounted-cash-flow-analysis-real-estate/" target="_blank" class="card" data-name="Property Metrics" data-category="financial-modeling">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=propertymetrics.com&sz=64" loading="lazy" alt="">
+        <div class="name">Property Metrics</div>
+        <div class="desc">DCF analysis tools and educational guides</div>
+      </a>
+      <a href="https://www.realdata.com/" target="_blank" class="card" data-name="RealData" data-category="financial-modeling">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=realdata.com&sz=64" loading="lazy" alt="">
+        <div class="name">RealData</div>
+        <div class="desc">Professional pro forma and investment analysis software</div>
+      </a>
+      <a href="https://www.valuatesoftware.com/" target="_blank" class="card" data-name="Valuate" data-category="financial-modeling">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=valuatesoftware.com&sz=64" loading="lazy" alt="">
+        <div class="name">Valuate</div>
+        <div class="desc">Appraisal and valuation software for commercial real estate</div>
+      </a>
+      <a href="https://www.getrefm.com/" target="_blank" class="card" data-name="Excel Real Estate (getrefm)" data-category="financial-modeling">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=getrefm.com&sz=64" loading="lazy" alt="">
+        <div class="name">Excel Real Estate (getrefm)</div>
+        <div class="desc">Excel-based financial modeling add-in</div>
+      </a>
+      <a href="https://www.financialmentor.com/calculator/real-estate-calculator" target="_blank" class="card" data-name="Financial Mentor Calculator" data-category="financial-modeling">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=financialmentor.com&sz=64" loading="lazy" alt="">
+        <div class="name">Financial Mentor Calculator</div>
+        <div class="desc">Real estate investment calculator</div>
+      </a>
+    </div>
+  </details>
+
+  <!-- Stage 6 -->
+  <details class="stage">
+    <summary>Stage 6: Legal & Detailed Due Diligence Review</summary>
+    <div class="goal">Auditing documents, leases, and title.</div>
+    <div class="grid" data-stage="6">
+      <a href="https://www.v7labs.com/" target="_blank" class="card" data-name="V7 Go" data-category="due-diligence">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=v7labs.com&sz=64" loading="lazy" alt="">
+        <div class="name">V7 Go</div>
+        <div class="desc">AI-driven due diligence command center for M&A and real estate</div>
+      </a>
+      <a href="https://www.lexisnexis.com/" target="_blank" class="card" data-name="LexisNexis" data-category="legal-compliance">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=lexisnexis.com&sz=64" loading="lazy" alt="">
+        <div class="name">LexisNexis</div>
+        <div class="desc">Comprehensive legal research database</div>
+      </a>
+      <a href="https://www.orbitalcopilot.com/" target="_blank" class="card" data-name="Orbital Copilot" data-category="due-diligence">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=orbitalcopilot.com&sz=64" loading="lazy" alt="">
+        <div class="name">Orbital Copilot</div>
+        <div class="desc">AI for CRE legal due diligence</div>
+      </a>
+      <a href="https://leaselens.ai/" target="_blank" class="card" data-name="LeaseLens" data-category="due-diligence">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=leaselens.ai&sz=64" loading="lazy" alt="">
+        <div class="name">LeaseLens</div>
+        <div class="desc">AI lease abstraction platform</div>
+      </a>
+      <a href="https://www.proda.ai/" target="_blank" class="card" data-name="Proda AI" data-category="due-diligence">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=proda.ai&sz=64" loading="lazy" alt="">
+        <div class="name">Proda AI</div>
+        <div class="desc">AI for rent roll data standardization</div>
+      </a>
+      <a href="https://www.blooma.ai/" target="_blank" class="card" data-name="Blooma" data-category="due-diligence">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=blooma.ai&sz=64" loading="lazy" alt="">
+        <div class="name">Blooma</div>
+        <div class="desc">AI for commercial real estate lending and deal analysis</div>
+      </a>
+      <a href="https://www.imprima.com/" target="_blank" class="card" data-name="Imprima" data-category="due-diligence">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=imprima.com&sz=64" loading="lazy" alt="">
+        <div class="name">Imprima</div>
+        <div class="desc">AI for real estate due diligence</div>
+      </a>
+      <a href="https://pdf.ai/" target="_blank" class="card" data-name="PDF.ai" data-category="due-diligence">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=pdf.ai&sz=64" loading="lazy" alt="">
+        <div class="name">PDF.ai</div>
+        <div class="desc">Extract data from PDFs for diligence</div>
+      </a>
+      <a href="https://www.civils.ai/" target="_blank" class="card" data-name="Civils AI" data-category="due-diligence">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=civils.ai&sz=64" loading="lazy" alt="">
+        <div class="name">Civils AI</div>
+        <div class="desc">AI for CRE data and due diligence</div>
+      </a>
+      <a href="https://www.getsurface.ai/" target="_blank" class="card" data-name="SurfaceAI" data-category="due-diligence">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=getsurface.ai&sz=64" loading="lazy" alt="">
+        <div class="name">SurfaceAI</div>
+        <div class="desc">Financial due diligence AI</div>
+      </a>
+      <a href="https://www.greenlite.com/" target="_blank" class="card" data-name="GreenLite" data-category="due-diligence">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=greenlite.com&sz=64" loading="lazy" alt="">
+        <div class="name">GreenLite</div>
+        <div class="desc">AI for permitting and due diligence automation</div>
+      </a>
+      <a href="https://www.fastcase.com/" target="_blank" class="card" data-name="Fastcase" data-category="legal-compliance">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=fastcase.com&sz=64" loading="lazy" alt="">
+        <div class="name">Fastcase</div>
+        <div class="desc">Legal research for land use cases</div>
+      </a>
+      <a href="https://codes.iccsafe.org/" target="_blank" class="card" data-name="ICC Digital Codes" data-category="legal-compliance">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=iccsafe.org&sz=64" loading="lazy" alt="">
+        <div class="name">ICC Digital Codes</div>
+        <div class="desc">International building, fire, and safety codes online</div>
+      </a>
+    </div>
+  </details>
+
+  <!-- Stage 7 -->
+  <details class="stage">
+    <summary>Stage 7: Entitlements & Permitting Approval</summary>
+    <div class="goal">Goal: Securing official build rights.</div>
+    <div class="grid" data-stage="7">
+      <a href="https://blitzpermits.ai/" target="_blank" class="card" data-name="BlitzPermits" data-category="zoning-permitting">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=blitzpermits.ai&sz=64" loading="lazy" alt="">
+        <div class="name">BlitzPermits</div>
+        <div class="desc">AI plan review + permitting/compliance infrastructure for agencies</div>
+      </a>
+      <a href="https://readypermit.ai/" target="_blank" class="card" data-name="ReadyPermit" data-category="zoning-permitting">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=readypermit.ai&sz=64" loading="lazy" alt="">
+        <div class="name">ReadyPermit</div>
+        <div class="desc">Property intelligence + buildability analysis + diligence-style reporting</div>
+      </a>
+      <a href="https://cloudpermit.com/" target="_blank" class="card" data-name="Cloudpermit" data-category="zoning-permitting">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=cloudpermit.com&sz=64" loading="lazy" alt="">
+        <div class="name">Cloudpermit</div>
+        <div class="desc">Cloud-based permitting and zoning compliance platform</div>
+      </a>
+      <a href="https://www.archistar.ai/echeck/" target="_blank" class="card" data-name="Archistar eCheck" data-category="zoning-permitting">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=archistar.ai&sz=64" loading="lazy" alt="">
+        <div class="name">Archistar eCheck</div>
+        <div class="desc">Digital building permit tools</div>
+      </a>
+      <a href="https://www.govstream.ai/" target="_blank" class="card" data-name="Govstream.ai" data-category="zoning-permitting">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=govstream.ai&sz=64" loading="lazy" alt="">
+        <div class="name">Govstream.ai</div>
+        <div class="desc">AI for smarter permitting</div>
+      </a>
+      <a href="https://www.landfinder.ai/" target="_blank" class="card" data-name="LandFinder.ai" data-category="entitlements">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=landfinder.ai&sz=64" loading="lazy" alt="">
+        <div class="name">LandFinder.ai</div>
+        <div class="desc">AI for rezoning and entitlements</div>
+      </a>
+      <a href="https://www.mercator.ai/" target="_blank" class="card" data-name="Mercator.ai" data-category="zoning-permitting">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=mercator.ai&sz=64" loading="lazy" alt="">
+        <div class="name">Mercator.ai</div>
+        <div class="desc">Permit forecasting tools for construction</div>
+      </a>
+      <a href="https://www.civcheck.ai/" target="_blank" class="card" data-name="CivCheck" data-category="zoning-permitting">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=civcheck.ai&sz=64" loading="lazy" alt="">
+        <div class="name">CivCheck</div>
+        <div class="desc">AI plan review for permits</div>
+      </a>
+      <a href="https://blumensystems.com/" target="_blank" class="card" data-name="Blumen Systems" data-category="entitlements">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=blumensystems.com&sz=64" loading="lazy" alt="">
+        <div class="name">Blumen Systems</div>
+        <div class="desc">AI for infrastructure permitting</div>
+      </a>
+      <a href="https://www.infilla.com/" target="_blank" class="card" data-name="Infilla" data-category="entitlements">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=infilla.com&sz=64" loading="lazy" alt="">
+        <div class="name">Infilla</div>
+        <div class="desc">AI for housing permitting acceleration</div>
+      </a>
+      <a href="https://www.pnnl.gov/projects/permitai" target="_blank" class="card" data-name="PermitAI" data-category="zoning-permitting">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=pnnl.gov&sz=64" loading="lazy" alt="">
+        <div class="name">PermitAI</div>
+        <div class="desc">AI for environmental permitting</div>
+      </a>
+      <a href="https://www.rezone.ai/" target="_blank" class="card" data-name="ReZone" data-category="zoning-permitting">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=rezone.ai&sz=64" loading="lazy" alt="">
+        <div class="name">ReZone</div>
+        <div class="desc">AI for zoning updates and changes</div>
+      </a>
+      <a href="https://www.govpilot.com/planning-and-zoning-software" target="_blank" class="card" data-name="GovPilot" data-category="zoning-permitting">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=govpilot.com&sz=64" loading="lazy" alt="">
+        <div class="name">GovPilot</div>
+        <div class="desc">GIS-integrated zoning management</div>
+      </a>
+      <a href="https://iworq.com/systems/planning-zoning-software/" target="_blank" class="card" data-name="iWorQ" data-category="zoning-permitting">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=iworq.com&sz=64" loading="lazy" alt="">
+        <div class="name">iWorQ</div>
+        <div class="desc">Zoning management software</div>
+      </a>
+      <a href="https://www.citizenserve.com/" target="_blank" class="card" data-name="Citizenserve" data-category="zoning-permitting">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=citizenserve.com&sz=64" loading="lazy" alt="">
+        <div class="name">Citizenserve</div>
+        <div class="desc">Community development software for permitting</div>
+      </a>
+      <a href="https://consensusplanning.com/" target="_blank" class="card" data-name="Consensus Planning" data-category="entitlements">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=consensusplanning.com&sz=64" loading="lazy" alt="">
+        <div class="name">Consensus Planning</div>
+        <div class="desc">Entitlement and planning consulting services</div>
+      </a>
+    </div>
+  </details>
+
+  <!-- Stage 8 -->
+  <details class="stage">
+    <summary>Stage 8: Urban Planning & Pre-Build Placemaking</summary>
+    <div class="goal">Visualizing the site's future to gain public and investor support.</div>
+    <div class="grid" data-stage="8">
+      <a href="https://site.urbanistai.com/" target="_blank" class="card" data-name="UrbanistAI" data-category="ai-feasibility">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=urbanistai.com&sz=64" loading="lazy" alt="">
+        <div class="name">UrbanistAI</div>
+        <div class="desc">Participatory AI platform for collaborative urban planning</div>
+      </a>
+      <a href="https://www.archivinci.com/" target="_blank" class="card" data-name="ArchiVinci" data-category="ai-feasibility">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=archivinci.com&sz=64" loading="lazy" alt="">
+        <div class="name">ArchiVinci</div>
+        <div class="desc">AI masterplan generator</div>
+      </a>
+      <a href="https://www.tripo3d.ai/" target="_blank" class="card" data-name="Tripo AI" data-category="ai-feasibility">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=tripo3d.ai&sz=64" loading="lazy" alt="">
+        <div class="name">Tripo AI</div>
+        <div class="desc">Generative 3D modeling for urban scenes</div>
+      </a>
+      <a href="https://www.cityplain.io/" target="_blank" class="card" data-name="CITYPLAIN" data-category="ai-feasibility">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=cityplain.io&sz=64" loading="lazy" alt="">
+        <div class="name">CITYPLAIN</div>
+        <div class="desc">Cloud-based urban planning AI for affordable housing</div>
+      </a>
+      <a href="https://www.dzinly.com/" target="_blank" class="card" data-name="Dzinly" data-category="ai-feasibility">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=dzinly.com&sz=64" loading="lazy" alt="">
+        <div class="name">Dzinly</div>
+        <div class="desc">AI for exterior design and visualization</div>
+      </a>
+      <a href="https://www.esri.com/arcgis/products/arcgis-cityengine/overview" target="_blank" class="card" data-name="CityEngine" data-category="ai-feasibility">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=esri.com&sz=64" loading="lazy" alt="">
+        <div class="name">CityEngine</div>
+        <div class="desc">Procedural generative urban massing</div>
+      </a>
+      <a href="https://www.mdpi.com/1999-5903/17/3/115" target="_blank" class="card" data-name="CityBuildAR" data-category="ai-feasibility">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=mdpi.com&sz=64" loading="lazy" alt="">
+        <div class="name">CityBuildAR</div>
+        <div class="desc">Mobile augmented reality app for community engagement in placemaking</div>
+      </a>
+      <a href="https://www.spacely.ai/" target="_blank" class="card" data-name="Spacely AI" data-category="ai-feasibility">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=spacely.ai&sz=64" loading="lazy" alt="">
+        <div class="name">Spacely AI</div>
+        <div class="desc">AI interior/exterior visualization</div>
+      </a>
+    </div>
+  </details>
+
+  <!-- Stage 9 -->
+  <details class="stage">
+    <summary>Stage 9: Advanced Financing & Asset Tokenization</summary>
+    <div class="goal">Goal: Raising capital digitally and ensuring liquidity.</div>
+    <div class="grid" data-stage="9">
+      <a href="https://www.zoniqx.com/" target="_blank" class="card" data-name="Zoniqx" data-category="other">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=zoniqx.com&sz=64" loading="lazy" alt="">
+        <div class="name">Zoniqx</div>
+        <div class="desc">Enterprise tokenization platform with ERC-7518 standard</div>
+      </a>
+      <a href="https://www.lofty.ai/" target="_blank" class="card" data-name="Lofty" data-category="other">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=lofty.ai&sz=64" loading="lazy" alt="">
+        <div class="name">Lofty</div>
+        <div class="desc">Fractionalize equity into $50 tokens on Algorand</div>
+      </a>
+      <a href="https://stegx.finance/" target="_blank" class="card" data-name="StegX" data-category="other">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=stegx.finance&sz=64" loading="lazy" alt="">
+        <div class="name">StegX</div>
+        <div class="desc">Institutional marketplace for tokenized real estate</div>
+      </a>
+      <a href="https://realt.co/" target="_blank" class="card" data-name="RealT" data-category="other">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=realt.co&sz=64" loading="lazy" alt="">
+        <div class="name">RealT</div>
+        <div class="desc">Fractional real estate ownership via tokens</div>
+      </a>
+      <a href="https://propy.com/" target="_blank" class="card" data-name="Propy" data-category="other">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=propy.com&sz=64" loading="lazy" alt="">
+        <div class="name">Propy</div>
+        <div class="desc">AI and blockchain for real estate transactions</div>
+      </a>
+      <a href="https://www.redswan.io/" target="_blank" class="card" data-name="RedSwan" data-category="other">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=redswan.io&sz=64" loading="lazy" alt="">
+        <div class="name">RedSwan</div>
+        <div class="desc">Commercial real estate tokenization platform</div>
+      </a>
+      <a href="https://tokeny.com/" target="_blank" class="card" data-name="Tokeny" data-category="other">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=tokeny.com&sz=64" loading="lazy" alt="">
+        <div class="name">Tokeny</div>
+        <div class="desc">Permissioned token infrastructure for compliant tokenization</div>
+      </a>
+      <a href="https://www.digishares.io/" target="_blank" class="card" data-name="DigiShares" data-category="other">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=digishares.io&sz=64" loading="lazy" alt="">
+        <div class="name">DigiShares</div>
+        <div class="desc">White-label tokenization for real estate cap tables</div>
+      </a>
+      <a href="https://binaryx.io/" target="_blank" class="card" data-name="Binaryx" data-category="other">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=binaryx.io&sz=64" loading="lazy" alt="">
+        <div class="name">Binaryx</div>
+        <div class="desc">International rental property tokenization</div>
+      </a>
+      <a href="https://www.homebase.app/" target="_blank" class="card" data-name="Homebase" data-category="other">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=homebase.app&sz=64" loading="lazy" alt="">
+        <div class="name">Homebase</div>
+        <div class="desc">Fractional home ownership starting at $100 using blockchain</div>
+      </a>
+      <a href="https://myco.io/" target="_blank" class="card" data-name="Myco" data-category="other">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=myco.io&sz=64" loading="lazy" alt="">
+        <div class="name">Myco</div>
+        <div class="desc">US platform for co-owning real estate assets through tokenization</div>
+      </a>
+      <a href="https://qarat.io/" target="_blank" class="card" data-name="Qarat" data-category="other">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=qarat.io&sz=64" loading="lazy" alt="">
+        <div class="name">Qarat</div>
+        <div class="desc">Dubai commercial real estate tokenization platform</div>
+      </a>
+      <a href="https://www.realestate-mall.io/" target="_blank" class="card" data-name="RealEstateMall (REM)" data-category="other">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=realestate-mall.io&sz=64" loading="lazy" alt="">
+        <div class="name">RealEstateMall (REM)</div>
+        <div class="desc">UAE-based luxury and commercial property tokenization</div>
+      </a>
+      <a href="https://www.blockimmo.ch/" target="_blank" class="card" data-name="Blockimmo" data-category="other">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=blockimmo.ch&sz=64" loading="lazy" alt="">
+        <div class="name">Blockimmo</div>
+        <div class="desc">Swiss platform for tokenized real estate shares</div>
+      </a>
+      <a href="https://www.brickblock.io/" target="_blank" class="card" data-name="Brickblock" data-category="other">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=brickblock.io&sz=64" loading="lazy" alt="">
+        <div class="name">Brickblock</div>
+        <div class="desc">Residential and commercial real estate tokenization platform</div>
+      </a>
+      <a href="https://www.solidblock.co/" target="_blank" class="card" data-name="SolidBlock" data-category="other">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=solidblock.co&sz=64" loading="lazy" alt="">
+        <div class="name">SolidBlock</div>
+        <div class="desc">Luxury property tokenization (tokenized St. Regis Aspen)</div>
+      </a>
+      <a href="https://www.slicere.com/" target="_blank" class="card" data-name="Slice" data-category="other">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=slicere.com&sz=64" loading="lazy" alt="">
+        <div class="name">Slice</div>
+        <div class="desc">Cross-border commercial real estate tokenization</div>
+      </a>
+      <a href="https://www.tzero.com/" target="_blank" class="card" data-name="tZERO" data-category="other">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=tzero.com&sz=64" loading="lazy" alt="">
+        <div class="name">tZERO</div>
+        <div class="desc">Regulated ATS for tokenized real estate securities trading</div>
+      </a>
+      <a href="https://honeybricks.com/" target="_blank" class="card" data-name="HoneyBricks" data-category="other">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=honeybricks.com&sz=64" loading="lazy" alt="">
+        <div class="name">HoneyBricks</div>
+        <div class="desc">Multifamily real estate tokenization for passive fractional investing</div>
+      </a>
+      <a href="https://www.realblocks.com/" target="_blank" class="card" data-name="RealBlocks" data-category="other">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=realblocks.com&sz=64" loading="lazy" alt="">
+        <div class="name">RealBlocks</div>
+        <div class="desc">Tokenized fund platforms for US real estate</div>
+      </a>
+    </div>
+  </details>
+
+  <!-- Stage 10 -->
+  <details class="stage">
+    <summary>Stage 10: Construction & Property Operations</summary>
+    <div class="goal">Goal: Building and managing the stabilized asset.</div>
+    <div class="grid" data-stage="10">
+      <a href="https://www.openspace.ai/" target="_blank" class="card" data-name="OpenSpace" data-category="construction-engineering">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=openspace.ai&sz=64" loading="lazy" alt="">
+        <div class="name">OpenSpace</div>
+        <div class="desc">AI site capture for construction progress</div>
+      </a>
+      <a href="https://www.procore.com/" target="_blank" class="card" data-name="Procore" data-category="construction-engineering">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=procore.com&sz=64" loading="lazy" alt="">
+        <div class="name">Procore</div>
+        <div class="desc">Construction project management and collaboration platform</div>
+      </a>
+      <a href="https://www.plangrid.com/" target="_blank" class="card" data-name="PlanGrid" data-category="construction-engineering">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=plangrid.com&sz=64" loading="lazy" alt="">
+        <div class="name">PlanGrid</div>
+        <div class="desc">Construction blueprint and document management</div>
+      </a>
+      <a href="https://www.appfolio.com/" target="_blank" class="card" data-name="AppFolio" data-category="property-management">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=appfolio.com&sz=64" loading="lazy" alt="">
+        <div class="name">AppFolio</div>
+        <div class="desc">Property management software for residential and commercial</div>
+      </a>
+      <a href="https://www.buildium.com/" target="_blank" class="card" data-name="Buildium" data-category="property-management">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=buildium.com&sz=64" loading="lazy" alt="">
+        <div class="name">Buildium</div>
+        <div class="desc">Property management for residential and HOA communities</div>
+      </a>
+      <a href="https://www.yardi.com/" target="_blank" class="card" data-name="Yardi" data-category="property-management">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=yardi.com&sz=64" loading="lazy" alt="">
+        <div class="name">Yardi</div>
+        <div class="desc">Comprehensive property management and accounting software</div>
+      </a>
+      <a href="https://www.mrisoftware.com/" target="_blank" class="card" data-name="MRI Software" data-category="property-management">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=mrisoftware.com&sz=64" loading="lazy" alt="">
+        <div class="name">MRI Software</div>
+        <div class="desc">Enterprise property management for commercial portfolios</div>
+      </a>
+      <a href="https://www.autodesk.com/products/autocad/" target="_blank" class="card" data-name="AutoCAD" data-category="construction-engineering">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=autodesk.com&sz=64" loading="lazy" alt="">
+        <div class="name">AutoCAD</div>
+        <div class="desc">Computer-aided design software for 2D and 3D drafting</div>
+      </a>
+      <a href="https://www.sketchup.com/" target="_blank" class="card" data-name="SketchUp" data-category="construction-engineering">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=sketchup.com&sz=64" loading="lazy" alt="">
+        <div class="name">SketchUp</div>
+        <div class="desc">Computer-aided design software for 2D and 3D drafting</div>
+      </a>
+      <a href="https://www.myarchitectai.com/" target="_blank" class="card" data-name="My Architect AI" data-category="ai-feasibility">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=myarchitectai.com&sz=64" loading="lazy" alt="">
+        <div class="name">My Architect AI</div>
+        <div class="desc">Computer-aided design software for 2D and 3D drafting</div>
+      </a>
+      <a href="https://www.autodesk.com/products/civil-3d/" target="_blank" class="card" data-name="Civil 3D" data-category="construction-engineering">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=autodesk.com&sz=64" loading="lazy" alt="">
+        <div class="name">Civil 3D</div>
+        <div class="desc">Civil engineering design and documentation software</div>
+      </a>
+      <a href="https://www.bluebeam.com/solutions/revu/" target="_blank" class="card" data-name="Bluebeam Revu" data-category="construction-engineering">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=bluebeam.com&sz=64" loading="lazy" alt="">
+        <div class="name">Bluebeam Revu</div>
+        <div class="desc">PDF editing and markup for construction documents</div>
+      </a>
+    </div>
+  </details>
+
+  <!-- General AI Tools -->
+  <details class="stage">
+    <summary>General AI Tools (The "Brain")</summary>
+    <div class="goal">Goal: Research, analysis, and building custom automation.</div>
+    <div class="grid" data-stage="general-ai">
+      <a href="https://chatgpt.com/" target="_blank" class="card" data-name="ChatGPT" data-category="general-ai">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=chatgpt.com&sz=64" loading="lazy" alt="">
+        <div class="name">ChatGPT</div>
+        <div class="desc">General-purpose AI for analysis, writing, and research</div>
+      </a>
+      <a href="https://claude.ai/" target="_blank" class="card" data-name="Claude" data-category="general-ai">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=claude.ai&sz=64" loading="lazy" alt="">
+        <div class="name">Claude</div>
+        <div class="desc">Anthropic AI assistant for deep research and analysis</div>
+      </a>
+      <a href="https://www.perplexity.ai/" target="_blank" class="card" data-name="Perplexity" data-category="general-ai">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=perplexity.ai&sz=64" loading="lazy" alt="">
+        <div class="name">Perplexity</div>
+        <div class="desc">AI-powered answer engine with web-backed research</div>
+      </a>
+      <a href="https://gemini.google.com/" target="_blank" class="card" data-name="Gemini" data-category="general-ai">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=gemini.google.com&sz=64" loading="lazy" alt="">
+        <div class="name">Gemini</div>
+        <div class="desc">Google multimodal AI assistant</div>
+      </a>
+      <a href="https://grok.x.ai/" target="_blank" class="card" data-name="Grok" data-category="general-ai">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=grok.x.ai&sz=64" loading="lazy" alt="">
+        <div class="name">Grok</div>
+        <div class="desc">xAI assistant with real-time information access</div>
+      </a>
+      <a href="https://cursor.com/" target="_blank" class="card" data-name="Cursor" data-category="general-ai">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=cursor.com&sz=64" loading="lazy" alt="">
+        <div class="name">Cursor</div>
+        <div class="desc">AI-first code editor for building custom tools</div>
+      </a>
+    </div>
+  </details>
+
+  <!-- Broader Knowledge & Economic Data -->
+  <details class="stage">
+    <summary>Broader Knowledge & Economic Data</summary>
+    <div class="goal">Goal: Federal resources and institutional market research.</div>
+    <div class="grid" data-stage="broader">
+      <a href="https://fred.stlouisfed.org/" target="_blank" class="card" data-name="FRED Data" data-category="economic-development">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=fred.stlouisfed.org&sz=64" loading="lazy" alt="">
+        <div class="name">FRED Data</div>
+        <div class="desc">Federal Reserve economic data and indicators</div>
+      </a>
+      <a href="https://data.census.gov/" target="_blank" class="card" data-name="data.census.gov" data-category="demographics-market">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=census.gov&sz=64" loading="lazy" alt="">
+        <div class="name">data.census.gov</div>
+        <div class="desc">Census data portal for demographic tables and geography</div>
+      </a>
+      <a href="https://www.bls.gov/" target="_blank" class="card" data-name="BLS" data-category="demographics-market">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=bls.gov&sz=64" loading="lazy" alt="">
+        <div class="name">BLS</div>
+        <div class="desc">Bureau of Labor Statistics employment and wages data</div>
+      </a>
+      <a href="https://www.esri.com/en-us/arcgis/products/arcgis-business-analyst/overview" target="_blank" class="card" data-name="ESRI Business Analyst" data-category="demographics-market">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=esri.com&sz=64" loading="lazy" alt="">
+        <div class="name">ESRI Business Analyst</div>
+        <div class="desc">Demographic and market analysis with GIS mapping</div>
+      </a>
+      <a href="https://www.trade.gov/selectusa-resources-and-information" target="_blank" class="card" data-name="SelectUSA" data-category="economic-development">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=trade.gov&sz=64" loading="lazy" alt="">
+        <div class="name">SelectUSA</div>
+        <div class="desc">Federal program for business investment and economic development</div>
+      </a>
+      <a href="https://www.eda.gov/resources/tools" target="_blank" class="card" data-name="U.S. EDA Tools" data-category="economic-development">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=eda.gov&sz=64" loading="lazy" alt="">
+        <div class="name">U.S. EDA Tools</div>
+        <div class="desc">Economic Development Administration tools and resources</div>
+      </a>
+      <a href="https://www.cbre.com/insights/books/economic-development-handbook" target="_blank" class="card" data-name="CBRE Economic Advisors" data-category="economic-development">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=cbre.com&sz=64" loading="lazy" alt="">
+        <div class="name">CBRE Economic Advisors</div>
+        <div class="desc">Economic development market research and analysis</div>
+      </a>
+      <a href="https://tools.econdevshow.com/" target="_blank" class="card" data-name="EconDevShow Tools" data-category="economic-development">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=econdevshow.com&sz=64" loading="lazy" alt="">
+        <div class="name">EconDevShow Tools</div>
+        <div class="desc">Comprehensive directory of economic development tools</div>
+      </a>
+      <a href="https://www.iedconline.org/pages/resources/" target="_blank" class="card" data-name="IEDC Resources" data-category="economic-development">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=iedconline.org&sz=64" loading="lazy" alt="">
+        <div class="name">IEDC Resources</div>
+        <div class="desc">International Economic Development Council resources</div>
+      </a>
+    </div>
+  </details>
+
+  <!-- Additional High-Value Resources -->
+  <details class="stage">
+    <summary>Additional High-Value Resources (Not Categorized)</summary>
+    <div class="goal">Miscellaneous tools across various stages</div>
+    <div class="grid" data-stage="additional">
+      <a href="https://www.landio.com/" target="_blank" class="card" data-name="Landio" data-category="other">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=landio.com&sz=64" loading="lazy" alt="">
+        <div class="name">Landio</div>
+        <div class="desc">Land listings marketplace</div>
+      </a>
+      <a href="https://www.loopnet.com/" target="_blank" class="card" data-name="LoopNet" data-category="other">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=loopnet.com&sz=64" loading="lazy" alt="">
+        <div class="name">LoopNet</div>
+        <div class="desc">Commercial real estate listings</div>
+      </a>
+      <a href="https://urbanfootprint.com/" target="_blank" class="card" data-name="UrbanFootprint" data-category="ai-feasibility">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=urbanfootprint.com&sz=64" loading="lazy" alt="">
+        <div class="name">UrbanFootprint</div>
+        <div class="desc">Urban planning and scenario modeling</div>
+      </a>
+      <a href="https://enscape3d.com/" target="_blank" class="card" data-name="Enscape" data-category="ai-feasibility">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=enscape3d.com&sz=64" loading="lazy" alt="">
+        <div class="name">Enscape</div>
+        <div class="desc">Real-time rendering and VR for architects</div>
+      </a>
+      <a href="https://lumion3d.com/" target="_blank" class="card" data-name="Lumion" data-category="ai-feasibility">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=lumion3d.com&sz=64" loading="lazy" alt="">
+        <div class="name">Lumion</div>
+        <div class="desc">3D rendering for architecture</div>
+      </a>
+      <a href="https://www.twinmotion.com/" target="_blank" class="card" data-name="Twinmotion" data-category="ai-feasibility">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=twinmotion.com&sz=64" loading="lazy" alt="">
+        <div class="name">Twinmotion</div>
+        <div class="desc">Real-time 3D immersion software</div>
+      </a>
+      <a href="https://getrezi.com/" target="_blank" class="card" data-name="Rezi" data-category="property-management">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=getrezi.com&sz=64" loading="lazy" alt="">
+        <div class="name">Rezi</div>
+        <div class="desc">Rent payment and resident engagement</div>
+      </a>
+      <a href="https://www.entrata.com/" target="_blank" class="card" data-name="Entrata" data-category="property-management">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=entrata.com&sz=64" loading="lazy" alt="">
+        <div class="name">Entrata</div>
+        <div class="desc">Property management software</div>
+      </a>
+      <a href="https://www.realpage.com/" target="_blank" class="card" data-name="RealPage" data-category="property-management">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=realpage.com&sz=64" loading="lazy" alt="">
+        <div class="name">RealPage</div>
+        <div class="desc">Property management and analytics</div>
+      </a>
+      <a href="https://www.reis.com/" target="_blank" class="card" data-name="Reis" data-category="demographics-market">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=reis.com&sz=64" loading="lazy" alt="">
+        <div class="name">Reis</div>
+        <div class="desc">Commercial real estate market trends (Moody's)</div>
+      </a>
+      <a href="https://www.yardimatrix.com/" target="_blank" class="card" data-name="Yardi Matrix" data-category="demographics-market">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=yardimatrix.com&sz=64" loading="lazy" alt="">
+        <div class="name">Yardi Matrix</div>
+        <div class="desc">Multifamily and commercial market intelligence</div>
+      </a>
+      <a href="https://www.cushmanwakefield.com/en/insights" target="_blank" class="card" data-name="Cushman & Wakefield Research" data-category="demographics-market">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=cushmanwakefield.com&sz=64" loading="lazy" alt="">
+        <div class="name">Cushman & Wakefield Research</div>
+        <div class="desc">Market research and reports</div>
+      </a>
+      <a href="https://www.jll.com/en/trends-and-insights" target="_blank" class="card" data-name="JLL Research" data-category="demographics-market">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=jll.com&sz=64" loading="lazy" alt="">
+        <div class="name">JLL Research</div>
+        <div class="desc">Real estate market intelligence</div>
+      </a>
+      <a href="https://www.cbre.com/insights/reports" target="_blank" class="card" data-name="CBRE Research" data-category="demographics-market">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=cbre.com&sz=64" loading="lazy" alt="">
+        <div class="name">CBRE Research</div>
+        <div class="desc">Global real estate market reports</div>
+      </a>
+      <a href="https://legal.thomsonreuters.com/en/products/westlaw" target="_blank" class="card" data-name="Westlaw" data-category="legal-compliance">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=thomsonreuters.com&sz=64" loading="lazy" alt="">
+        <div class="name">Westlaw</div>
+        <div class="desc">Legal research platform</div>
+      </a>
+      <a href="https://www.rocketlawyer.com/" target="_blank" class="card" data-name="Rocket Lawyer" data-category="legal-compliance">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=rocketlawyer.com&sz=64" loading="lazy" alt="">
+        <div class="name">Rocket Lawyer</div>
+        <div class="desc">Online legal documents for real estate</div>
+      </a>
+      <a href="https://www.legalzoom.com/" target="_blank" class="card" data-name="LegalZoom" data-category="legal-compliance">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=legalzoom.com&sz=64" loading="lazy" alt="">
+        <div class="name">LegalZoom</div>
+        <div class="desc">Real estate legal documents and LLC formation</div>
+      </a>
+      <a href="https://www.energystar.gov/buildings/tools-and-resources/portfolio-manager" target="_blank" class="card" data-name="Energy Star Portfolio Manager" data-category="environmental-esg">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=energystar.gov&sz=64" loading="lazy" alt="">
+        <div class="name">Energy Star Portfolio Manager</div>
+        <div class="desc">Track building energy performance</div>
+      </a>
+      <a href="https://www.usgbc.org/leed" target="_blank" class="card" data-name="LEED Online" data-category="environmental-esg">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=usgbc.org&sz=64" loading="lazy" alt="">
+        <div class="name">LEED Online</div>
+        <div class="desc">Green building certification</div>
+      </a>
+      <a href="https://www.epa.gov/watersense" target="_blank" class="card" data-name="WaterSense" data-category="environmental-esg">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=epa.gov&sz=64" loading="lazy" alt="">
+        <div class="name">WaterSense</div>
+        <div class="desc">Water efficiency program</div>
+      </a>
+      <a href="https://www.phius.org/" target="_blank" class="card" data-name="Phius" data-category="environmental-esg">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=phius.org&sz=64" loading="lazy" alt="">
+        <div class="name">Phius</div>
+        <div class="desc">Passive house certification</div>
+      </a>
+      <a href="https://str.com/" target="_blank" class="card" data-name="STR" data-category="demographics-market">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=str.com&sz=64" loading="lazy" alt="">
+        <div class="name">STR</div>
+        <div class="desc">Hospitality data benchmarking</div>
+      </a>
+      <a href="https://siteselection.com/" target="_blank" class="card" data-name="SiteSelection.com" data-category="demographics-market">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=siteselection.com&sz=64" loading="lazy" alt="">
+        <div class="name">SiteSelection.com</div>
+        <div class="desc">Corporate site selection resources</div>
+      </a>
+      <a href="https://www.policymap.com/" target="_blank" class="card" data-name="PolicyMap" data-category="public-data-gis">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=policymap.com&sz=64" loading="lazy" alt="">
+        <div class="name">PolicyMap</div>
+        <div class="desc">Data and mapping for community development</div>
+      </a>
+      <a href="https://call811.com/" target="_blank" class="card" data-name="811 / Call Before You Dig" data-category="utilities-infra">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=call811.com&sz=64" loading="lazy" alt="">
+        <div class="name">811 / Call Before You Dig</div>
+        <div class="desc">National utility location service</div>
+      </a>
+      <a href="https://www.thehartford.com/" target="_blank" class="card" data-name="The Hartford" data-category="other">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=thehartford.com&sz=64" loading="lazy" alt="">
+        <div class="name">The Hartford</div>
+        <div class="desc">Commercial property insurance</div>
+      </a>
+      <a href="https://www.travelers.com/" target="_blank" class="card" data-name="Travelers" data-category="other">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=travelers.com&sz=64" loading="lazy" alt="">
+        <div class="name">Travelers</div>
+        <div class="desc">Construction and property insurance</div>
+      </a>
+      <a href="https://www.zurich.com/" target="_blank" class="card" data-name="Zurich" data-category="other">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=zurich.com&sz=64" loading="lazy" alt="">
+        <div class="name">Zurich</div>
+        <div class="desc">Risk management and insurance</div>
+      </a>
+      <a href="https://www.collateralanalytics.com/" target="_blank" class="card" data-name="Collateral Analytics" data-category="financial-modeling">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=collateralanalytics.com&sz=64" loading="lazy" alt="">
+        <div class="name">Collateral Analytics</div>
+        <div class="desc">Automated valuation models</div>
+      </a>
+      <a href="https://www.clearcapital.com/" target="_blank" class="card" data-name="ClearCapital" data-category="financial-modeling">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=clearcapital.com&sz=64" loading="lazy" alt="">
+        <div class="name">ClearCapital</div>
+        <div class="desc">Residential valuation and analytics</div>
+      </a>
+      <a href="https://www.zillow.com/" target="_blank" class="card" data-name="Zillow" data-category="demographics-market">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=zillow.com&sz=64" loading="lazy" alt="">
+        <div class="name">Zillow</div>
+        <div class="desc">Residential property valuations</div>
+      </a>
+      <a href="https://www.commercialedge.com/" target="_blank" class="card" data-name="CommercialEdge" data-category="demographics-market">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=commercialedge.com&sz=64" loading="lazy" alt="">
+        <div class="name">CommercialEdge</div>
+        <div class="desc">Commercial real estate listings and data</div>
+      </a>
+      <a href="https://www.ten-x.com/" target="_blank" class="card" data-name="Ten-X" data-category="other">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=ten-x.com&sz=64" loading="lazy" alt="">
+        <div class="name">Ten-X</div>
+        <div class="desc">Commercial real estate online marketplace</div>
+      </a>
+      <a href="https://www.auction.com/" target="_blank" class="card" data-name="Auction.com" data-category="other">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=auction.com&sz=64" loading="lazy" alt="">
+        <div class="name">Auction.com</div>
+        <div class="desc">Real estate auction platform</div>
+      </a>
+      <a href="https://www.walkscore.com/" target="_blank" class="card" data-name="WalkScore" data-category="demographics-market">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=walkscore.com&sz=64" loading="lazy" alt="">
+        <div class="name">WalkScore</div>
+        <div class="desc">Walkability, transit, and bike scores</div>
+      </a>
+      <a href="https://developers.google.com/maps" target="_blank" class="card" data-name="Google Maps API" data-category="public-data-gis">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=developers.google.com&sz=64" loading="lazy" alt="">
+        <div class="name">Google Maps API</div>
+        <div class="desc">Mapping and location services</div>
+      </a>
+      <a href="https://www.mapbox.com/" target="_blank" class="card" data-name="Mapbox" data-category="public-data-gis">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=mapbox.com&sz=64" loading="lazy" alt="">
+        <div class="name">Mapbox</div>
+        <div class="desc">Custom maps and location data</div>
+      </a>
+      <a href="https://firststreet.org/" target="_blank" class="card" data-name="First Street Foundation" data-category="environmental-esg">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=firststreet.org&sz=64" loading="lazy" alt="">
+        <div class="name">First Street Foundation</div>
+        <div class="desc">Climate risk data and flood factors</div>
+      </a>
+      <a href="https://jupiterintel.com/" target="_blank" class="card" data-name="Jupiter Intelligence" data-category="environmental-esg">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=jupiterintel.com&sz=64" loading="lazy" alt="">
+        <div class="name">Jupiter Intelligence</div>
+        <div class="desc">Climate risk analytics</div>
+      </a>
+      <a href="https://www.corelogic.com/" target="_blank" class="card" data-name="CoreLogic" data-category="demographics-market">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=corelogic.com&sz=64" loading="lazy" alt="">
+        <div class="name">CoreLogic</div>
+        <div class="desc">Property data with hazard risk</div>
+      </a>
+      <a href="https://compstak.com/" target="_blank" class="card" data-name="CompStak" data-category="demographics-market">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=compstak.com&sz=64" loading="lazy" alt="">
+        <div class="name">CompStak</div>
+        <div class="desc">Commercial real estate comps database</div>
+      </a>
+      <a href="https://www.crexi.com/" target="_blank" class="card" data-name="Crexi" data-category="demographics-market">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=crexi.com&sz=64" loading="lazy" alt="">
+        <div class="name">Crexi</div>
+        <div class="desc">Commercial real estate marketplace</div>
+      </a>
+      <a href="https://www.firstam.com/" target="_blank" class="card" data-name="First American Title" data-category="legal-compliance">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=firstam.com&sz=64" loading="lazy" alt="">
+        <div class="name">First American Title</div>
+        <div class="desc">Title insurance and settlement</div>
+      </a>
+      <a href="https://www.fntic.com/" target="_blank" class="card" data-name="Fidelity National Title" data-category="legal-compliance">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=fntic.com&sz=64" loading="lazy" alt="">
+        <div class="name">Fidelity National Title</div>
+        <div class="desc">Title insurance services</div>
+      </a>
+      <a href="https://www.oldrepublictitle.com/" target="_blank" class="card" data-name="Old Republic Title" data-category="legal-compliance">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=oldrepublictitle.com&sz=64" loading="lazy" alt="">
+        <div class="name">Old Republic Title</div>
+        <div class="desc">Title insurance</div>
+      </a>
+      <a href="https://www.surveymonkey.com/" target="_blank" class="card" data-name="SurveyMonkey" data-category="other">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=surveymonkey.com&sz=64" loading="lazy" alt="">
+        <div class="name">SurveyMonkey</div>
+        <div class="desc">For community surveys</div>
+      </a>
+      <a href="https://www.buildingconnected.com/" target="_blank" class="card" data-name="BuildingConnected" data-category="construction-engineering">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=buildingconnected.com&sz=64" loading="lazy" alt="">
+        <div class="name">BuildingConnected</div>
+        <div class="desc">Construction bid management (Autodesk)</div>
+      </a>
+      <a href="https://www.bcorporation.net/" target="_blank" class="card" data-name="B Corp Certification" data-category="other">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=bcorporation.net&sz=64" loading="lazy" alt="">
+        <div class="name">B Corp Certification</div>
+        <div class="desc">Social and environmental performance certification</div>
+      </a>
+      <a href="https://justcapital.com/" target="_blank" class="card" data-name="JUST Capital" data-category="other">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=justcapital.com&sz=64" loading="lazy" alt="">
+        <div class="name">JUST Capital</div>
+        <div class="desc">Corporate stakeholder capitalism metrics</div>
+      </a>
+      <a href="https://impactmanagementproject.com/" target="_blank" class="card" data-name="Impact Management Project" data-category="other">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=impactmanagementproject.com&sz=64" loading="lazy" alt="">
+        <div class="name">Impact Management Project</div>
+        <div class="desc">Impact measurement standards</div>
+      </a>
+      <a href="https://www.ai21.com/" target="_blank" class="card" data-name="AI21 Labs" data-category="general-ai">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=ai21.com&sz=64" loading="lazy" alt="">
+        <div class="name">AI21 Labs</div>
+        <div class="desc">Advanced AI for document analysis</div>
+      </a>
+      <a href="https://www.anthropic.com/" target="_blank" class="card" data-name="Anthropic API" data-category="general-ai">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=anthropic.com&sz=64" loading="lazy" alt="">
+        <div class="name">Anthropic API</div>
+        <div class="desc">Claude AI for custom integrations</div>
+      </a>
+      <a href="https://openai.com/api/" target="_blank" class="card" data-name="OpenAI API" data-category="general-ai">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=openai.com&sz=64" loading="lazy" alt="">
+        <div class="name">OpenAI API</div>
+        <div class="desc">GPT models for custom applications</div>
+      </a>
+      <a href="https://www.midjourney.com/" target="_blank" class="card" data-name="Midjourney" data-category="ai-feasibility">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=midjourney.com&sz=64" loading="lazy" alt="">
+        <div class="name">Midjourney</div>
+        <div class="desc">AI image generation for visualization concepts</div>
+      </a>
+      <a href="https://stability.ai/" target="_blank" class="card" data-name="Stable Diffusion" data-category="ai-feasibility">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=stability.ai&sz=64" loading="lazy" alt="">
+        <div class="name">Stable Diffusion</div>
+        <div class="desc">Open-source AI image generation</div>
+      </a>
+      <a href="https://openai.com/dall-e-3" target="_blank" class="card" data-name="DALL-E" data-category="ai-feasibility">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=openai.com&sz=64" loading="lazy" alt="">
+        <div class="name">DALL-E</div>
+        <div class="desc">AI image generation from OpenAI</div>
+      </a>
+      <a href="https://cityzenith.com/" target="_blank" class="card" data-name="CityZenith" data-category="other">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=cityzenith.com&sz=64" loading="lazy" alt="">
+        <div class="name">CityZenith</div>
+        <div class="desc">Digital twin platform for smart cities</div>
+      </a>
+      <a href="https://www.bentley.com/" target="_blank" class="card" data-name="Bentley Systems" data-category="construction-engineering">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=bentley.com&sz=64" loading="lazy" alt="">
+        <div class="name">Bentley Systems</div>
+        <div class="desc">Infrastructure engineering software</div>
+      </a>
+      <a href="https://matterport.com/" target="_blank" class="card" data-name="Matterport" data-category="ai-feasibility">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=matterport.com&sz=64" loading="lazy" alt="">
+        <div class="name">Matterport</div>
+        <div class="desc">3D capture and digital twin creation</div>
+      </a>
+      <a href="https://www.navvis.com/" target="_blank" class="card" data-name="NavVis" data-category="public-data-gis">
+        <img class="favicon" src="https://www.google.com/s2/favicons?domain=navvis.com&sz=64" loading="lazy" alt="">
+        <div class="name">NavVis</div>
+        <div class="desc">Indoor spatial intelligence</div>
+      </a>
+    </div>
+  </details>
+
+</div>
+
+</div>
+
+<script>
+// Dark mode toggle
+document.getElementById('toggle-theme').addEventListener('click', () => {
+  const html = document.documentElement;
+  const current = html.getAttribute('data-theme');
+  html.setAttribute('data-theme', current === 'dark' ? 'light' : 'dark');
+  document.getElementById('toggle-theme').textContent = current === 'dark' ? 'Dark Mode' : 'Light Mode';
+});
+
+// Category filter
+document.querySelectorAll('.category').forEach(cat => {
+  cat.addEventListener('click', () => {
+    document.querySelectorAll('.category').forEach(c => c.classList.remove('active'));
+    cat.classList.add('active');
+    const category = cat.dataset.category;
+    document.querySelectorAll('.card').forEach(card => {
+      if (category === 'all' || card.dataset.category === category) {
+        card.style.display = '';
+      } else {
+        card.style.display = 'none';
+      }
+    });
+  });
+});
+
+// Live search
+document.getElementById('search').addEventListener('input', e => {
+  const term = e.target.value.toLowerCase().trim();
+  document.querySelectorAll('.card').forEach(card => {
+    const text = card.textContent.toLowerCase();
+    card.style.display = term === '' || text.includes(term) ? '' : 'none';
+  });
+});
+
+// Sort within stages
+document.getElementById('sort').addEventListener('change', e => {
+  const mode = e.target.value;
+  document.querySelectorAll('.grid').forEach(grid => {
+    const cards = Array.from(grid.children);
+    if (mode === 'alpha') {
+      cards.sort((a, b) => a.dataset.name.localeCompare(b.dataset.name));
+    } else {
+      cards.sort((a, b) => a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1);
+    }
+    grid.innerHTML = '';
+    cards.forEach(card => grid.appendChild(card));
+  });
+});
+</script>
+
+</body>
+</html>
