@@ -11,12 +11,12 @@
 
 [data-theme="dark"] {
   --bg: #0f172a;
-  --card: #344766;
+  --card: #334155;
   --text: #e2e8f0;
   --gray: #94a3b8;
   --accent: #60a5fa;
   --border: #485B78;
-  --sidebar-bg: #344766;
+  --sidebar-bg: #334155;
   --summary-bg: #334155;
 }
 
