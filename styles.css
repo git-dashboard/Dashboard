@@ -228,3 +228,11 @@ summary {
     grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
   }
 }
+
+a {
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: none;  /* or keep underline on hover if you prefer */
+}
