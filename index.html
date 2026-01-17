@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Development Operations Dashboard • 235+ Tools</title>
   <link rel="stylesheet" href="styles.css">
-</head>
+  </head>
 <body>
 
 <div id="sidebar">
@@ -1265,6 +1265,9 @@
 </div>
 
 <script>
+// Open all Stage sections by default on initial load
+document.querySelectorAll("details.stage").forEach(d => { d.open = true; });
+
 // Dark mode toggle
 document.getElementById('toggle-theme').addEventListener('click', () => {
   const html = document.documentElement;
@@ -1316,5 +1319,3 @@ document.getElementById('sort').addEventListener('change', e => {
 
 </body>
 </html>
-
-
