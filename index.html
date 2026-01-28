@@ -77,7 +77,7 @@
       padding: 2rem 1rem;
       position: relative;
     }
-    header h1 { margin:0; font-size:2.4rem; }
+    header h1 { margin:0; font-size: clamp(1.55rem, 3vw, 2.4rem); }
     .controls {
       position: absolute;
       top: 1.5rem;
@@ -119,8 +119,8 @@
       overflow: hidden;
     }
     summary {
-      padding: 1.2rem 1.5rem;
-      font-size: 1.3rem;
+      padding: 1.05rem 1.25rem;
+      font-size: clamp(1.05rem, 2.2vw, 1.3rem);
       font-weight: 600;
       background: var(--summary-bg);
       cursor: pointer;
@@ -227,9 +227,111 @@
   color: var(--accent);
 }
 .subgrid { padding-top: 0.55rem; }
+
+
+/* Responsive enhancements: off-canvas sidebar + mobile top bar */
+#overlay { display: none; }
+
+#mobile-bar {
+  display: none;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 0.75rem;
+  background: var(--sidebar-bg);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 1001;
+  box-sizing: border-box;
+}
+
+#mobile-bar .mobile-title {
+  font-weight: 800;
+  font-size: 0.95rem;
+  text-align: center;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#open-sidebar, #toggle-theme-mobile {
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--text);
+  padding: 0.5rem 0.75rem;
+  border-radius: 10px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  font-size: 1.05rem;
+  line-height: 1;
+}
+
+#open-sidebar:active, #toggle-theme-mobile:active { transform: translateY(1px); }
+
+/* Improve touch targets on mobile */
+@media (hover: none) and (pointer: coarse) {
+  .category { padding: 0.9rem 1rem; }
+  .card { min-height: 135px; }
+  button, select { padding: 0.75rem 1.2rem; }
+}
+
+/* Off-canvas sidebar for phones */
+@media (max-width: 768px) {
+  #mobile-bar { display: flex; }
+  #overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 1000;
+    display: none;
+  }
+
+  #sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: min(320px, 85vw);
+    transform: translateX(-105%);
+    transition: transform 0.25s ease;
+    z-index: 1002;
+    border-right: 1px solid var(--border);
+    border-bottom: none;
+  }
+
+  body.sidebar-open #sidebar { transform: translateX(0); }
+  body.sidebar-open #overlay { display: block; }
+
+  /* Prevent background scrolling while the drawer is open */
+  body.sidebar-open { overflow: hidden; }
+
+  /* Sidebar header spacing */
+  #sidebar h2 { margin-top: 0.5rem; }
+
+  /* Main content shouldn't jump under sticky mobile bar */
+  #main-content { padding-top: 0.75rem; }
+}
+
+/* Make header controls wrap better on narrower screens */
+@media (max-width: 480px) {
+  .controls { top: 0.75rem; right: 0.75rem; gap: 0.5rem; }
+  button, select { font-size: 0.9rem; }
+  #search { font-size: 1rem; padding: 0.9rem; }
+  .grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+}
+
 </style>
 </head>
 <body>
+
+<div id="overlay" aria-hidden="true"></div>
+<div id="mobile-bar">
+  <button id="open-sidebar" type="button" aria-label="Open categories menu">☰</button>
+  <div class="mobile-title">Development Operations Dashboard</div>
+  <button id="toggle-theme-mobile" type="button" aria-label="Toggle dark mode">🌓</button>
+</div>
+
 <div id="sidebar">
 <h2>Categories</h2>
 <div class="category active" data-category="all">All Resources</div>
@@ -1511,5 +1613,63 @@ document.getElementById('search').addEventListener('input', (e) => {
   });
 })();
 </script>
+
+<script>
+(function () {
+  const body = document.body;
+  const overlay = document.getElementById('overlay');
+  const openBtn = document.getElementById('open-sidebar');
+  const mobileThemeBtn = document.getElementById('toggle-theme-mobile');
+  const desktopThemeBtn = document.getElementById('toggle-theme');
+
+  function isMobile() {
+    return window.matchMedia && window.matchMedia('(max-width: 768px)').matches;
+  }
+
+  function openSidebar() {
+    body.classList.add('sidebar-open');
+    overlay.setAttribute('aria-hidden', 'false');
+  }
+
+  function closeSidebar() {
+    body.classList.remove('sidebar-open');
+    overlay.setAttribute('aria-hidden', 'true');
+  }
+
+  function toggleSidebar() {
+    if (body.classList.contains('sidebar-open')) closeSidebar();
+    else openSidebar();
+  }
+
+  // Open/close handlers
+  if (openBtn) openBtn.addEventListener('click', toggleSidebar);
+  if (overlay) overlay.addEventListener('click', closeSidebar);
+
+  // Close drawer after selecting a category (mobile only)
+  document.addEventListener('click', (e) => {
+    const el = e.target;
+    if (!isMobile()) return;
+    if (el && el.classList && el.classList.contains('category')) {
+      closeSidebar();
+    }
+  });
+
+  // ESC to close
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeSidebar();
+  });
+
+  // Mobile theme button mirrors desktop theme toggle
+  if (mobileThemeBtn && desktopThemeBtn) {
+    mobileThemeBtn.addEventListener('click', () => desktopThemeBtn.click());
+  }
+
+  // If the user rotates / resizes to desktop, ensure drawer state doesn't trap scrolling.
+  window.addEventListener('resize', () => {
+    if (!isMobile()) closeSidebar();
+  });
+})();
+</script>
+
 </body>
 </html>
